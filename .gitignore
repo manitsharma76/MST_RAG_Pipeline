@@ -8,6 +8,7 @@ __pycache__/
 flagged/
 .gradio/
 .cache/
-parsed/
-index/
+# LlamaParse response cache (top level only; data/parsed/ holds the reviewed notes and is committed)
+/parsed/
+/index/
 .playwright-mcp/

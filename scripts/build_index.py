@@ -35,6 +35,9 @@ def main() -> None:
     for path in note_files(settings.raw_dir, settings.parsed_dir):
         kind = "reviewed Markdown" if path.parent == settings.parsed_dir else "loaded directly"
         print(f"  {path.relative_to(settings.raw_dir.parents[1])}  ({kind})")
+        if path.suffix.lower() == ".pdf":
+            print(f"  WARNING: no reviewed data/parsed/{path.stem}.md, so this PDF was text-extracted; "
+                  "pseudocode, math and tables may be garbled (run scripts/prepare_notes.py).")
 
     sizes = [len(c.text) for c in stats.chunks]
     print(f"Indexed {stats.files} file(s) into {len(stats.chunks)} chunks "
