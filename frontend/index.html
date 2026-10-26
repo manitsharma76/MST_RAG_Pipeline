@@ -211,6 +211,7 @@ async function ask(question) {
   let answer = "", sources = [], frame = 0;
   const paint = () => { frame = 0; body.innerHTML = renderRich(answer); };
   try {
+    if (!API) throw new Error("This page has no backend URL configured, so it can't answer yet.");
     const res = await fetch(`${API}/api/ask`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
