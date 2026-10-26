@@ -83,7 +83,7 @@ def respond(message: str, history: list[dict], top_k: int, show_sources: bool):
 
 with gr.Blocks(title="MST Notes Assistant") as demo:
     gr.Markdown(
-        "# 🌲 MST Notes Assistant\n"
+        "# MST Notes Assistant\n"
         "Ask about minimum spanning trees: Prim's and Kruskal's algorithms, the optimal substructure and "
         "greedy-choice properties, correctness proofs and runtimes. Answers come **only from the course "
         "notes** and cite the passages they use."

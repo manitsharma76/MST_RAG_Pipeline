@@ -19,7 +19,7 @@ from config import ROOT  # noqa: E402
 
 README = """---
 title: MST Notes Assistant
-emoji: 🌲
+emoji: 🔗
 colorFrom: green
 colorTo: blue
 sdk: static

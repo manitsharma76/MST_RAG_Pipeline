@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MST Notes Assistant</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cg%20stroke%3D%22%239aa59f%22%20stroke-width%3D%221.6%22%20stroke-dasharray%3D%222%202%22%3E%3Cline%20x1%3D%2218%22%20y1%3D%225%22%20x2%3D%2210%22%20y2%3D%2222%22/%3E%3Cline%20x1%3D%2227%22%20y1%3D%2213%22%20x2%3D%2222%22%20y2%3D%2226%22/%3E%3Cline%20x1%3D%2218%22%20y1%3D%225%22%20x2%3D%2222%22%20y2%3D%2226%22/%3E%3C/g%3E%3Cg%20stroke%3D%22%232f6f4f%22%20stroke-width%3D%222.6%22%20stroke-linecap%3D%22round%22%3E%3Cline%20x1%3D%226%22%20y1%3D%229%22%20x2%3D%2218%22%20y2%3D%225%22/%3E%3Cline%20x1%3D%2218%22%20y1%3D%225%22%20x2%3D%2227%22%20y2%3D%2213%22/%3E%3Cline%20x1%3D%226%22%20y1%3D%229%22%20x2%3D%2210%22%20y2%3D%2222%22/%3E%3Cline%20x1%3D%2210%22%20y1%3D%2222%22%20x2%3D%2222%22%20y2%3D%2226%22/%3E%3C/g%3E%3Cg%20fill%3D%22%232f6f4f%22%3E%3Ccircle%20cx%3D%226%22%20cy%3D%229%22%20r%3D%223.4%22/%3E%3Ccircle%20cx%3D%2218%22%20cy%3D%225%22%20r%3D%223.4%22/%3E%3Ccircle%20cx%3D%2227%22%20cy%3D%2213%22%20r%3D%223.4%22/%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2222%22%20r%3D%223.4%22/%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2226%22%20r%3D%223.4%22/%3E%3C/g%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.21/katex.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"></script>
@@ -30,7 +31,11 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
   .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 24px; display: flex; flex-direction: column; min-height: 100vh; gap: 14px; }
-  header h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  header h1 { font-size: 1.45rem; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  .logo { width: 32px; height: 32px; flex: none; }
+  .logo .edge-on line { stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; }
+  .logo .edge-off line { stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 2 2; opacity: 0.6; }
+  .logo .node circle { fill: var(--accent); stroke: var(--bg); stroke-width: 1.5; }
   header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
   .status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); flex: none; }
@@ -72,7 +77,11 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>🌲 MST Notes Assistant</h1>
+    <h1><svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <g class="edge-off"><line x1="18" y1="5" x2="10" y2="22"/><line x1="27" y1="13" x2="22" y2="26"/><line x1="18" y1="5" x2="22" y2="26"/></g>
+      <g class="edge-on"><line x1="6" y1="9" x2="18" y2="5"/><line x1="18" y1="5" x2="27" y2="13"/><line x1="6" y1="9" x2="10" y2="22"/><line x1="10" y1="22" x2="22" y2="26"/></g>
+      <g class="node"><circle cx="6" cy="9" r="3"/><circle cx="18" cy="5" r="3"/><circle cx="27" cy="13" r="3"/><circle cx="10" cy="22" r="3"/><circle cx="22" cy="26" r="3"/></g>
+    </svg><span>MST Notes Assistant</span></h1>
     <p>Ask about minimum spanning trees: Prim's and Kruskal's algorithms, the optimal substructure and greedy-choice properties, correctness proofs and runtimes. Answers come only from the course notes and cite the passages they use.</p>
     <div class="status" id="status"><span class="dot"></span><span id="status-text">Connecting to the server…</span></div>
   </header>

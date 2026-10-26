@@ -1,6 +1,6 @@
 ---
 title: MST Notes Assistant
-emoji: 🌲
+emoji: 🔗
 colorFrom: green
 colorTo: blue
 sdk: gradio
