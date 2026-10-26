@@ -57,7 +57,7 @@ class Settings:
     groq_model: str = _env("GROQ_MODEL", "qwen/qwen3.8-27b")
     # Tried in order when the main model is rate-limited (comma-separated; empty to disable).
     groq_fallback_models: str = _env("GROQ_FALLBACK_MODELS", "openai/gpt-oss-120b")
-    gemini_model: str = _env("GEMINI_MODEL", "gemini-2.0-flash")
+    gemini_model: str = _env("GEMINI_MODEL", "gemini-3.5-flash-lite")
     temperature: float = _env("TEMPERATURE", 0.1)
     # Output tokens reserved per call. Groq's free tier caps output tokens per minute (seen at 1000),
     # so a request that reserves more is refused outright; answers are usually a few hundred tokens.

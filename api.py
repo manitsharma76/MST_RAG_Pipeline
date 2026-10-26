@@ -82,7 +82,12 @@ def source_payload(chunks) -> list[dict]:
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "chunks": len(pipeline.retriever.chunks), "llm": pipeline.llm is not None}
+    return {
+        "status": "ok",
+        "chunks": len(pipeline.retriever.chunks),
+        "llm": pipeline.llm is not None,
+        "models": pipeline.llm.model if pipeline.llm else None,  # e.g. "qwen/qwen3.8-27b -> gemini-3.5-flash-lite"
+    }
 
 
 @app.post("/api/ask")

@@ -3,8 +3,13 @@
     python scripts/deploy_space.py --space <hf-username>/mst-rag --private
     python scripts/deploy_space.py --space <hf-username>/mst-rag          # public
 
-Steps: check the LLM key works, create the Space (if needed), store the key as an
-encrypted Space secret, and upload the code and reviewed notes. Needs a Hugging Face
+Steps: check the LLM key works, create the Space (if needed), store the LLM keys as
+encrypted Space secrets, and upload the code, the reviewed notes and a README carrying the
+Gradio Space header (the repository README has no header, so it reads well on GitHub).
+
+Note: Hugging Face now requires a paid plan for Gradio Spaces on CPU Basic; free accounts
+older than 30 days can use ZeroGPU hardware instead. The default deployment is the static
+Space + Render backend (scripts/deploy_frontend.py, render.yaml). Needs a Hugging Face
 login with write access (`hf auth login`, or HF_TOKEN in the environment).
 
 Not uploaded: .env and other secrets, .venv, the local index (the Space builds its own
@@ -24,7 +29,23 @@ from config import ROOT, settings  # noqa: E402
 IGNORE = [
     ".env", ".env.*", ".venv/**", ".git/**", "index/**", "parsed/**",
     "**/__pycache__/**", "**/*.pyc", ".pytest_cache/**", ".DS_Store", "**/.DS_Store", ".gradio/**", "flagged/**", ".cache/**",
+    "README.md", "CLAUDE.md", ".playwright-mcp/**",
 ]
+SPACE_README = """---
+title: MST Notes Assistant
+emoji: 🔗
+colorFrom: green
+colorTo: blue
+sdk: gradio
+sdk_version: 6.30.0
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
+Question answering over MIT 6.046J Lecture 12 notes on minimum spanning trees, grounded in the
+notes with page-level citations.
+"""
 KEY_NAMES = {"groq": "GROQ_API_KEY", "gemini": "GEMINI_API_KEY"}
 
 
@@ -65,12 +86,19 @@ def main() -> None:
     api.add_space_secret(args.space, key_name, key)
     api.add_space_variable(args.space, "LLM_PROVIDER", settings.llm_provider)
     print(f"Stored {key_name} as an encrypted Space secret")
+    for backup in (n.strip() for n in settings.llm_backup_providers.split(",") if n.strip()):
+        backup_key = os.getenv(KEY_NAMES.get(backup, ""), "").strip()
+        if backup_key and KEY_NAMES[backup] != key_name:
+            api.add_space_secret(args.space, KEY_NAMES[backup], backup_key)
+            print(f"Stored {KEY_NAMES[backup]} (backup provider) as an encrypted Space secret")
 
     commit = api.upload_folder(
         folder_path=ROOT, repo_id=args.space, repo_type="space",
         ignore_patterns=IGNORE,
         commit_message="Deploy MST RAG app",
     )
+    api.upload_file(path_or_fileobj=SPACE_README.encode(), path_in_repo="README.md", repo_id=args.space,
+                    repo_type="space", commit_message="Space README")
     print(f"Uploaded: {commit.commit_url}")
     print(f"\nThe Space is building. Watch the logs at https://huggingface.co/spaces/{args.space}?logs=container")
 

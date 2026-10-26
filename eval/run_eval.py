@@ -2,12 +2,14 @@
 
     python eval/run_eval.py          # retrieval + grounding gate only (no LLM calls)
     python eval/run_eval.py --llm    # also generate answers and check citations / refusals
+    python eval/run_eval.py --llm --delay 5   # pace LLM calls under free-tier rate limits
 
 Edit questions.jsonl so the in-scope questions and keywords match your notes.
 A question is a retrieval hit if any expected keyword appears in the retrieved passages.
 """
 import argparse
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -22,6 +24,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--llm", action="store_true", help="also call the LLM (uses API quota)")
     parser.add_argument("--file", default=Path(__file__).with_name("questions.jsonl"), type=Path)
+    parser.add_argument("--delay", type=float, default=0, help="seconds to wait between LLM calls (free-tier rate limits)")
     args = parser.parse_args()
 
     pipeline = create_pipeline(settings)
@@ -38,6 +41,7 @@ def main() -> None:
 
         note = ""
         if args.llm:
+            time.sleep(args.delay)
             answer, _ = pipeline.answer(case["question"])
             refused = NOT_COVERED in answer
             if case["in_scope"]:
