@@ -2,8 +2,9 @@ import logging
 import re
 from collections.abc import Iterator
 
-from rag.llm import LLMClient
-from rag.prompts import NOT_COVERED, REWRITE_PROMPT, SYSTEM_PROMPT, build_rewrite_message, build_user_message
+from rag.llm import LLMClient, LLMRateLimitError
+from rag.prompts import (LLM_FAILED, NOT_COVERED, RATE_LIMITED, REWRITE_PROMPT, SYSTEM_PROMPT, build_rewrite_message,
+                         build_user_message)
 from rag.retriever import HybridRetriever, RetrievedChunk
 
 log = logging.getLogger(__name__)
@@ -11,8 +12,9 @@ log = logging.getLogger(__name__)
 
 class RAGPipeline:
     def __init__(self, retriever: HybridRetriever, llm: LLMClient | None, min_similarity: float,
-                 rewrite_followups: bool = True, history_turns: int = 6):
+                 rewrite_followups: bool = True, history_turns: int = 6, rewrite_max_tokens: int = 150):
         self.retriever = retriever
+        self.rewrite_max_tokens = rewrite_max_tokens
         self.llm = llm
         self.min_similarity = min_similarity
         self.rewrite_followups = rewrite_followups
@@ -41,9 +43,12 @@ class RAGPipeline:
             for token in self.llm.stream(SYSTEM_PROMPT, messages):
                 answer += token
                 yield answer, result.chunks
-        except Exception as exc:  # rate limits, network errors, bad keys
+        except LLMRateLimitError:
+            log.warning("LLM rate-limited", exc_info=True)
+            yield _with_notice(answer, RATE_LIMITED), result.chunks
+        except Exception:  # network errors, bad keys; details go to the log, not to visitors
             log.exception("LLM call failed")
-            yield f"{answer}\n\n⚠️ The language model request failed: {exc}", result.chunks
+            yield _with_notice(answer, LLM_FAILED), result.chunks
 
     def answer(self, question: str, history: list[dict] | None = None, top_k: int = 5) -> tuple[str, list[RetrievedChunk]]:
         final = ("", [])
@@ -57,11 +62,16 @@ class RAGPipeline:
             return question
         recent = [m for m in history if m.get("role") in {"user", "assistant"}][-self.history_turns:]
         try:
-            rewritten = self.llm.generate(REWRITE_PROMPT, [{"role": "user", "content": build_rewrite_message(question, recent)}]).strip()
+            messages = [{"role": "user", "content": build_rewrite_message(question, recent)}]
+            rewritten = self.llm.generate(REWRITE_PROMPT, messages, max_tokens=self.rewrite_max_tokens).strip()
             return rewritten or question
         except Exception:
             log.exception("Follow-up rewrite failed; using the original question")
             return question
+
+
+def _with_notice(answer: str, notice: str) -> str:
+    return f"{answer}\n\n{notice}" if answer else notice
 
 
 def cited_indices(answer: str) -> set[int]:
@@ -92,4 +102,5 @@ def create_pipeline(settings) -> RAGPipeline:
         llm = None
 
     retriever = HybridRetriever(store, embedder, settings.candidate_k, settings.rrf_k, reranker)
-    return RAGPipeline(retriever, llm, settings.min_similarity, settings.rewrite_followups)
+    return RAGPipeline(retriever, llm, settings.min_similarity, settings.rewrite_followups,
+                       rewrite_max_tokens=settings.rewrite_max_tokens)

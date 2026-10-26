@@ -52,10 +52,17 @@ class Settings:
 
     # LLM
     llm_provider: str = _env("LLM_PROVIDER", "groq")  # "groq" | "gemini"
+    # Used, in order, when the main provider is rate-limited, if their API key is set.
+    llm_backup_providers: str = _env("LLM_BACKUP_PROVIDERS", "gemini")
     groq_model: str = _env("GROQ_MODEL", "qwen/qwen3.8-27b")
+    # Tried in order when the main model is rate-limited (comma-separated; empty to disable).
+    groq_fallback_models: str = _env("GROQ_FALLBACK_MODELS", "openai/gpt-oss-120b")
     gemini_model: str = _env("GEMINI_MODEL", "gemini-2.0-flash")
     temperature: float = _env("TEMPERATURE", 0.1)
-    max_tokens: int = _env("MAX_TOKENS", 1024)
+    # Output tokens reserved per call. Groq's free tier caps output tokens per minute (seen at 1000),
+    # so a request that reserves more is refused outright; answers are usually a few hundred tokens.
+    max_tokens: int = _env("MAX_TOKENS", 700)
+    rewrite_max_tokens: int = _env("REWRITE_MAX_TOKENS", 150)
     rewrite_followups: bool = _env("REWRITE_FOLLOWUPS", True)
 
     supported_extensions: tuple = field(default=(".pdf", ".md", ".markdown", ".txt", ".docx"))

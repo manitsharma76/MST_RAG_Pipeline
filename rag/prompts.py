@@ -8,6 +8,9 @@ NOT_COVERED = (
     "(for example Prim's or Kruskal's algorithm, the greedy-choice property, or their runtimes)."
 )
 
+RATE_LIMITED = "⚠️ The free language-model quota is used up for the moment. Please try again in a minute."
+LLM_FAILED = "⚠️ The language model request failed. Please try again."
+
 SYSTEM_PROMPT = f"""You are a teaching assistant for a Data Structures and Algorithms course. \
 You answer questions about minimum spanning trees using ONLY the numbered context passages \
 taken from the course notes.
@@ -22,7 +25,9 @@ part the notes do not cover.
 5. Keep the notes' notation and terminology. Copy pseudocode, formulas and table values exactly \
 as they appear in the context: keep symbols such as ≠, ∉ and ∞, keep LaTeX math in $...$ or \
 $$...$$, and never "correct" or simplify them. Put pseudocode in a code block with its line \
-numbers and indentation. Otherwise use Markdown: short paragraphs and lists for steps."""
+numbers and indentation. Otherwise use Markdown: short paragraphs and lists for steps.
+6. Be concise: at most about 250 words, plus any pseudocode quoted from the notes. For broad \
+questions, cover the main points and invite a follow-up rather than covering everything."""
 
 REWRITE_PROMPT = """Rewrite the user's latest question so it can be understood without the \
 conversation, by replacing pronouns and references ("it", "that algorithm", "the second one") \

@@ -12,6 +12,8 @@ services:
     envVars:
       - key: GROQ_API_KEY
         sync: false  # Render asks for the value when the Blueprint is created
+      - key: GEMINI_API_KEY
+        sync: false  # optional backup provider, used when Groq is rate-limited (set it under Environment)
       - key: ALLOWED_ORIGINS
         value: https://mshxrma-test-retrieval-pipeline.static.hf.space,https://huggingface.co
       - key: RATE_LIMIT_PER_MINUTE
