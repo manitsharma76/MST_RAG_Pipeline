@@ -1,0 +1,18 @@
+# Render Blueprint for the backend API. In Render: New -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: mst-rag-api
+    runtime: python
+    plan: free
+    # Download the embedding model and build the index during the build, so a cold start
+    # only has to load them (the free instance sleeps after 15 idle minutes).
+    buildCommand: pip install -r requirements-backend.txt && python scripts/build_index.py --rebuild --show 0
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false  # Render asks for the value when the Blueprint is created
+      - key: ALLOWED_ORIGINS
+        value: https://mshxrma-test-retrieval-pipeline.static.hf.space,https://huggingface.co
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "10"

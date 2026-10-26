@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MST Notes Assistant</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.21/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.21/katex.min.js"></script>
+<script src="config.js"></script>
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --surface-2: #f0f0ec; --text: #1d1d1b; --muted: #66665f;
+    --border: #e2e2dc; --accent: #2f6f4f; --accent-text: #ffffff; --user: #e8f1ec;
+    --ok: #2f7d4f; --warn: #a36a00; --bad: #b3261e; --code: #f3f3ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --surface: #1d1d1b; --surface-2: #262624; --text: #ecece8; --muted: #a3a39b;
+      --border: #33332f; --accent: #6fbf8f; --accent-text: #0f1f16; --user: #1f2e25;
+      --ok: #6fbf8f; --warn: #e0a84a; --bad: #f07a70; --code: #232321;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141413; --surface: #1d1d1b; --surface-2: #262624; --text: #ecece8; --muted: #a3a39b;
+    --border: #33332f; --accent: #6fbf8f; --accent-text: #0f1f16; --user: #1f2e25;
+    --ok: #6fbf8f; --warn: #e0a84a; --bad: #f07a70; --code: #232321;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 24px; display: flex; flex-direction: column; min-height: 100vh; gap: 14px; }
+  header h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--warn); flex: none; }
+  .status.ready .dot { background: var(--ok); }
+  .status.down .dot { background: var(--bad); }
+  .status button { font: inherit; font-size: 0.8rem; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+  #log { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .empty { color: var(--muted); font-size: 0.95rem; }
+  .msg { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); overflow-wrap: anywhere; }
+  .msg.user { background: var(--user); align-self: flex-end; max-width: 85%; white-space: pre-wrap; }
+  .msg.assistant { align-self: stretch; }
+  .msg.assistant.pending .body { color: var(--muted); }
+  .msg .body > :first-child { margin-top: 0; } .msg .body > :last-child { margin-bottom: 0; }
+  .msg pre { background: var(--code); padding: 10px 12px; border-radius: 8px; overflow-x: auto; font-size: 0.88rem; line-height: 1.45; }
+  .msg code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.9em; }
+  .msg :not(pre) > code { background: var(--code); padding: 1px 5px; border-radius: 4px; }
+  .msg table { border-collapse: collapse; display: block; overflow-x: auto; font-size: 0.9rem; }
+  .msg th, .msg td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+  details.sources { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; font-size: 0.9rem; }
+  details.sources summary { cursor: pointer; color: var(--muted); }
+  .src { margin-top: 10px; padding: 10px 12px; background: var(--surface-2); border-radius: 8px; }
+  .src-head { font-weight: 600; font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+  .src-meta { color: var(--muted); font-weight: 400; }
+  .badge { font-size: 0.72rem; padding: 1px 6px; border-radius: 99px; background: var(--accent); color: var(--accent-text); font-weight: 600; }
+  .src-text { max-height: 260px; overflow: auto; margin-top: 6px; }
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; }
+  .examples button { font: inherit; font-size: 0.85rem; padding: 6px 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; text-align: left; }
+  .examples button:hover { border-color: var(--accent); }
+  form { display: flex; gap: 8px; position: sticky; bottom: 0; background: var(--bg); padding: 8px 0 4px; }
+  textarea { flex: 1; min-width: 0; resize: none; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); min-height: 46px; max-height: 160px; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .btn { font: inherit; font-weight: 600; padding: 0 18px; border-radius: 10px; border: none; background: var(--accent); color: var(--accent-text); cursor: pointer; }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .btn.secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); font-weight: 500; padding: 0 12px; }
+  footer { color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🌲 MST Notes Assistant</h1>
+    <p>Ask about minimum spanning trees: Prim's and Kruskal's algorithms, the optimal substructure and greedy-choice properties, correctness proofs and runtimes. Answers come only from the course notes and cite the passages they use.</p>
+    <div class="status" id="status"><span class="dot"></span><span id="status-text">Connecting to the server…</span></div>
+  </header>
+
+  <main id="log" aria-live="polite">
+    <p class="empty" id="empty">Try one of these, or type your own question:</p>
+    <div class="examples" id="examples"></div>
+  </main>
+
+  <form id="form">
+    <textarea id="q" rows="1" placeholder="Ask a question about minimum spanning trees…" aria-label="Question" maxlength="1000"></textarea>
+    <button class="btn" id="send" type="submit">Ask</button>
+    <button class="btn secondary" id="clear" type="button" title="Clear the conversation">Clear</button>
+  </form>
+  <footer>Knowledge base: MIT 6.046J Lecture 12 notes (Greedy Algorithms and Minimum Spanning Tree). Retrieval runs on a free server that sleeps when idle, so the first question can take up to a minute.</footer>
+</div>
+
+<script>
+const API = (window.MST_API_URL || "").replace(/\/$/, "");
+const EXAMPLES = [
+  "What is a minimum spanning tree?",
+  "Compare Kruskal's and Prim's algorithms.",
+  "What condition does Kruskal's algorithm check before adding an edge?",
+  "What is the time complexity of Prim's algorithm with a binary heap?",
+  "Why does the greedy-choice property make greedy MST algorithms correct?",
+];
+
+const $ = (id) => document.getElementById(id);
+const log = $("log"), form = $("form"), input = $("q"), send = $("send");
+let history = [];  // [{role, content}] sent to the server for follow-up questions
+let busy = false;
+
+// ---------- Markdown + LaTeX rendering ----------
+const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+function renderRich(md) {
+  // Protect code first (a $ inside code is not math), then pull math out before Markdown can
+  // mangle backslashes, and put KaTeX output back after sanitising the Markdown HTML.
+  const code = [], math = [];
+  md = md.replace(/\\\[([\s\S]+?)\\\]/g, (_, t) => `$$${t}$$`).replace(/\\\(([\s\S]+?)\\\)/g, (_, t) => `$${t}$`);
+  md = md.replace(/```[\s\S]*?(?:```|$)|`[^`\n]+`/g, (m) => `@@CODE${code.push(m) - 1}@@`);
+  md = md.replace(/\$\$([\s\S]+?)\$\$/g, (_, t) => `@@MATH${math.push([t, true]) - 1}@@`);
+  md = md.replace(/\$([^$\n]+?)\$/g, (_, t) => `@@MATH${math.push([t, false]) - 1}@@`);
+  md = md.replace(/@@CODE(\d+)@@/g, (_, i) => code[i]);
+  const html = DOMPurify.sanitize(marked.parse(md));
+  return html.replace(/@@MATH(\d+)@@/g, (_, i) => {
+    const [tex, display] = math[i];
+    try { return katex.renderToString(tex, { displayMode: display, throwOnError: false }); }
+    catch { return escapeHtml(tex); }
+  });
+}
+
+// ---------- server status (free hosting sleeps when idle) ----------
+function setStatus(state, text) {
+  const el = $("status");
+  el.className = "status " + state;
+  $("status-text").textContent = text;
+  el.querySelector("button")?.remove();
+  if (state === "down") {
+    const retry = document.createElement("button");
+    retry.textContent = "Retry";
+    retry.onclick = wake;
+    el.appendChild(retry);
+  }
+}
+
+async function wake() {
+  if (!API) { setStatus("down", "No backend URL configured (config.js)."); return; }
+  setStatus("", "Connecting to the server…");
+  const slow = setTimeout(() => setStatus("", "Waking up the server. Free hosting sleeps when idle; this can take up to a minute…"), 2500);
+  try {
+    const res = await fetch(`${API}/api/health`, { signal: AbortSignal.timeout(120000) });
+    const data = await res.json();
+    if (!res.ok) throw new Error();
+    setStatus(data.llm ? "ready" : "down", data.llm ? `Ready · ${data.chunks} passages indexed` : "Server is up, but its LLM key is missing.");
+  } catch {
+    setStatus("down", "Couldn't reach the server.");
+  } finally {
+    clearTimeout(slow);
+  }
+}
+
+// ---------- chat ----------
+function addMessage(role, text) {
+  $("empty")?.remove();
+  $("examples")?.remove();
+  const el = document.createElement("div");
+  el.className = `msg ${role}`;
+  const body = document.createElement("div");
+  body.className = "body";
+  if (role === "user") body.textContent = text; else body.innerHTML = text;
+  el.appendChild(body);
+  log.appendChild(el);
+  el.scrollIntoView({ block: "end", behavior: "smooth" });
+  return el;
+}
+
+function renderSources(el, sources, cited) {
+  el.querySelector("details")?.remove();
+  if (!sources.length) return;
+  const details = document.createElement("details");
+  details.className = "sources";
+  const citedCount = sources.filter((s) => cited.has(s.n)).length;
+  details.innerHTML = `<summary>Retrieved passages (${sources.length}${citedCount ? `, ${citedCount} cited` : ""})</summary>`;
+  for (const s of sources) {
+    const box = document.createElement("div");
+    box.className = "src";
+    const sim = s.similarity == null ? "keyword match" : `similarity ${s.similarity.toFixed(2)}`;
+    box.innerHTML = `<div class="src-head">[${s.n}] ${escapeHtml(s.label)} <span class="src-meta">· ${sim}</span>${cited.has(s.n) ? '<span class="badge">cited</span>' : ""}</div>`;
+    const text = document.createElement("div");
+    text.className = "src-text";
+    text.innerHTML = renderRich(s.text);
+    box.appendChild(text);
+    details.appendChild(box);
+  }
+  el.appendChild(details);
+}
+
+async function ask(question) {
+  busy = true; send.disabled = true;
+  addMessage("user", question);
+  const el = addMessage("assistant", "Searching the notes…");
+  el.classList.add("pending");
+  const body = el.querySelector(".body");
+  const wakeHint = setTimeout(() => { if (el.classList.contains("pending")) body.textContent = "Waking up the server (free hosting sleeps when idle). This can take up to a minute…"; }, 3000);
+
+  let answer = "", sources = [], frame = 0;
+  const paint = () => { frame = 0; body.innerHTML = renderRich(answer); };
+  try {
+    const res = await fetch(`${API}/api/ask`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, history }),
+    });
+    if (!res.ok) {
+      const detail = await res.json().catch(() => ({}));
+      throw new Error(typeof detail.detail === "string" ? detail.detail : `The server returned ${res.status}.`);
+    }
+    const reader = res.body.getReader(), decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (const line of lines.filter(Boolean)) {
+        const event = JSON.parse(line);
+        if (event.type === "sources") { sources = event.sources; }
+        else if (event.type === "delta") {
+          el.classList.remove("pending");
+          answer += event.text;
+          if (!frame) frame = requestAnimationFrame(paint);
+        } else if (event.type === "done") {
+          answer = event.answer;
+          el.classList.remove("pending");
+          paint();
+          renderSources(el, sources, new Set(event.cited));
+        } else if (event.type === "error") { throw new Error(event.message); }
+      }
+    }
+    history.push({ role: "user", content: question }, { role: "assistant", content: answer });
+    history = history.slice(-6);
+    setStatus("ready", $("status-text").textContent.startsWith("Ready") ? $("status-text").textContent : "Ready");
+  } catch (err) {
+    el.classList.remove("pending");
+    body.innerHTML = `<p>⚠️ ${escapeHtml(err.message === "Failed to fetch" ? "Couldn't reach the server. Check your connection and try again." : err.message)}</p>`;
+  } finally {
+    clearTimeout(wakeHint);
+    busy = false; send.disabled = false;
+    input.focus();
+  }
+}
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const question = input.value.trim();
+  if (!question || busy) return;
+  input.value = ""; input.style.height = "";
+  ask(question);
+});
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+});
+input.addEventListener("input", () => { input.style.height = ""; input.style.height = Math.min(input.scrollHeight, 160) + "px"; });
+$("clear").addEventListener("click", () => { history = []; location.reload(); });
+
+for (const q of EXAMPLES) {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = q;
+  b.onclick = () => { if (!busy) ask(q); };
+  $("examples").appendChild(b);
+}
+wake();
+</script>
+</body>
+</html>

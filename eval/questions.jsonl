@@ -1,0 +1,30 @@
+{"question": "What is a minimum spanning tree?", "in_scope": true, "expected_keywords": ["of minimum weight"]}
+{"question": "Why is computing the weight of every spanning tree a bad way to find the MST?", "in_scope": true, "expected_keywords": ["exponential number of spanning trees"]}
+{"question": "What two properties do problems solvable by greedy algorithms have?", "in_scope": true, "expected_keywords": ["locally optimal choices"]}
+{"question": "What happens when an edge is contracted in the optimal substructure argument?", "in_scope": true, "expected_keywords": ["multiedge"]}
+{"question": "Why is the dynamic programming algorithm based on edge contraction exponential?", "in_scope": true, "expected_keywords": ["guess"]}
+{"question": "State the greedy-choice property for minimum spanning trees.", "in_scope": true, "expected_keywords": ["least-weight crossing edge"]}
+{"question": "How is the greedy-choice property for MST proven?", "in_scope": true, "expected_keywords": ["cut and paste"]}
+{"question": "How does Prim's algorithm work?", "in_scope": true, "expected_keywords": ["extract-min"]}
+{"question": "What invariants are used to prove Prim's algorithm correct?", "in_scope": true, "expected_keywords": ["following invariants"]}
+{"question": "Why does the O(E) term appear in the runtime of Prim's algorithm?", "in_scope": true, "expected_keywords": ["handshaking lemma"]}
+{"question": "What is the running time of Prim's algorithm with a binary heap?", "in_scope": true, "expected_keywords": ["binary heap"]}
+{"question": "What is the running time of Prim's algorithm with a Fibonacci heap?", "in_scope": true, "expected_keywords": ["fibonacci heap"]}
+{"question": "Which data structure does Kruskal's algorithm use to track connected components?", "in_scope": true, "expected_keywords": ["union-find"]}
+{"question": "How is Kruskal's algorithm proven correct?", "in_scope": true, "expected_keywords": ["tree-so-far"]}
+{"question": "What is the time complexity of Kruskal's algorithm?", "in_scope": true, "expected_keywords": ["e \\lg e", "e lg e"]}
+{"question": "When can Kruskal's algorithm be faster than Prim's algorithm?", "in_scope": true, "expected_keywords": ["counting sort"]}
+{"question": "What is the fastest known MST algorithm?", "in_scope": true, "expected_keywords": ["karger"]}
+{"question": "What condition does Kruskal's algorithm check before adding an edge to the tree?", "in_scope": true, "expected_keywords": ["find-set(u) ≠ find-set(v)"]}
+{"question": "What is v.key initialised to for the vertices other than the start vertex in Prim's algorithm?", "in_scope": true, "expected_keywords": ["v.key = ∞"]}
+{"question": "What is the total running time of Prim's algorithm when the priority queue is an array?", "in_scope": true, "expected_keywords": ["o(v^2)"]}
+{"question": "What quantity does a minimum spanning tree minimise?", "in_scope": true, "expected_keywords": ["\\sum_{e \\in t} w(e)"]}
+{"question": "What does Prim's algorithm return at the end?", "in_scope": true, "expected_keywords": ["v.parent} | v ∈ v \\ {s}"]}
+{"question": "Explain Borůvka's algorithm for minimum spanning trees.", "in_scope": false}
+{"question": "How does the reverse-delete algorithm find an MST?", "in_scope": false}
+{"question": "What is the cycle property of minimum spanning trees?", "in_scope": false}
+{"question": "How do union by rank and path compression work?", "in_scope": false}
+{"question": "Explain Dijkstra's shortest path algorithm.", "in_scope": false}
+{"question": "How does quicksort choose a pivot?", "in_scope": false}
+{"question": "What is the capital of France?", "in_scope": false}
+{"question": "How do I reverse a linked list?", "in_scope": false}
